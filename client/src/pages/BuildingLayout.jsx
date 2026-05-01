@@ -119,8 +119,12 @@ let edgeIdCounter = 10
 // ─── Inner component (needs ReactFlowProvider context) ────────────
 function BuildingLayoutInner() {
   const mode = useSelector((state) => state.theme.mode)
+  const user = useSelector((state) => state.user.user)
   const isDark = mode === 'dark'
   const { setCenter } = useReactFlow()
+
+  const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   const initialNodes = [
     { id: '1', type: 'room', position: { x: 80, y: 180 }, data: { label: 'Lobby', type: 'room', area: 120, capacity: 50 } },
@@ -151,6 +155,34 @@ function BuildingLayoutInner() {
   const [panel, setPanel] = useState(null)        // current edit data
   const [addMode, setAddMode] = useState(null)    // 'node' | 'edge'
   const [edgeSource, setEdgeSource] = useState(null)
+
+  // ── Fetch Layout on Mount ──
+  useEffect(() => {
+    const fetchLayout = async () => {
+      if (!user) return
+      setIsLoading(true)
+      try {
+        const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+        const res = await fetch(`${API_URL}/api/layouts/${user.id}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.nodes && data.nodes.length > 0) {
+            setNodes(data.nodes)
+            setEdges(data.edges.map(buildEdge))
+            
+            // Re-calculate node id counters to prevent duplicate IDs on new rooms
+            const maxId = Math.max(...data.nodes.map(n => parseInt(n.id.replace(/\D/g, '')) || 0), 0)
+            nodeIdCounter = maxId > 10 ? maxId : 10
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load layout", e)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchLayout()
+  }, [user, setNodes, setEdges]) // buildEdge depends only on static MarkerType
 
   // ── Derive node/edge by selected id ──
   const selectedNode = selected?.type === 'node' ? nodes.find(n => n.id === selected.id) : null
@@ -251,6 +283,27 @@ function BuildingLayoutInner() {
     )))
   }
 
+  // ── Save full layout to backend ──
+  const handleSaveLayout = async () => {
+    if (!user) return
+    setIsSaving(true)
+    try {
+      const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+      const res = await fetch(`${API_URL}/api/layouts/${user.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodes, edges })
+      })
+      if (!res.ok) throw new Error('Failed to save layout')
+      alert('Layout saved successfully!')
+    } catch (e) {
+      console.error(e)
+      alert('Error saving layout')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   // ── Highlight from dropdown ──
   const highlightNode = (id) => {
     setSelected({ type: 'node', id })
@@ -310,6 +363,14 @@ function BuildingLayoutInner() {
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button 
+              className={btnPrimary} 
+              onClick={handleSaveLayout}
+              disabled={isSaving}
+              style={{ marginBottom: 8, background: isSaving ? '#94a3b8' : undefined }}
+            >
+              {isSaving ? '⏳ Saving...' : '💾 Save Layout'}
+            </button>
             <button className={btnSecondary(addMode === 'node')} onClick={() => { setAddMode(addMode === 'node' ? null : 'node'); setEdgeSource(null) }}>
               {addMode === 'node' ? '📍 Click canvas...' : '+ Add Room'}
             </button>
