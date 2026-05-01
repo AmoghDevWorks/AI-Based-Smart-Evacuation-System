@@ -17,7 +17,7 @@ const Home = () => {
         <h1 className={`text-4xl md:text-5xl font-extrabold mb-12 text-center ${mode === 'light' ? 'text-black' : 'text-white'}`}>
           Welcome to Smart Evac
         </h1>
-        
+
         <div className="flex flex-col md:flex-row gap-8 w-full justify-center">
           {/* Login Card */}
           <div className={`flex-1 flex flex-col p-8 text-center transition-all duration-300 rounded-2xl shadow-lg hover:-translate-y-2 hover:shadow-xl ${mode === 'light' ? 'bg-white border border-gray-100' : 'bg-gray-900 border border-gray-800'}`}>

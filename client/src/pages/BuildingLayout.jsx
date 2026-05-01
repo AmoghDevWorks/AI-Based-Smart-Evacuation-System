@@ -469,6 +469,10 @@ function BuildingLayoutInner() {
                 <label className={labelCls} style={{ color: textSecondary }}>Capacity</label>
                 <input className={inputCls} type="number" value={panel.capacity ?? ''} onChange={e => setPanel(p => ({ ...p, capacity: Number(e.target.value) }))} />
               </div>
+              <div>
+                <label className={labelCls} style={{ color: textSecondary }}>Device / Camera ID</label>
+                <input className={inputCls} type="text" placeholder="e.g. 0 or rtsp://..." value={panel.device_id ?? ''} onChange={e => setPanel(p => ({ ...p, device_id: e.target.value }))} />
+              </div>
 
               {/* Type badge preview */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: isDark ? '#0f172a' : '#f1f5f9' }}>

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database.db import engine, Base
-from routes import auth, layout
+from routes import auth, layout, camera
 
 load_dotenv()
 
@@ -25,6 +25,7 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(layout.router, prefix="/api/layouts", tags=["Layouts"])
+app.include_router(camera.router, prefix="/api/camera", tags=["Camera"])
 
 @app.get("/")
 def root():
