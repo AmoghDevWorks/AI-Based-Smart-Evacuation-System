@@ -9,6 +9,8 @@ import LiveMonitoring from './pages/LiveMonitoring'
 import BuildingLayout from './pages/BuildingLayout'
 import AlertsLogs from './pages/AlertsLogs'
 import Settings from './pages/Settings'
+import Login from './components/Login'
+import SignUp from './components/SignUp'
 
 const App = () => {
   const mode = useSelector((state) => state.theme.mode)
@@ -40,6 +42,8 @@ const App = () => {
           <main className="flex-1 flex flex-col overflow-y-auto">
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>
