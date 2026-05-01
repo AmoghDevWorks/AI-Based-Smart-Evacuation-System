@@ -1,16 +1,32 @@
-# React + Vite
+# AI-Based Smart Evacuation System - Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the React frontend for the AI-Based Smart Evacuation System, built with Vite and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Project Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### `/src/components`
+- **`Hero.jsx`**: Acts as the main **Dashboard Overview**. It aggregates various dashboard widgets into a responsive CSS grid layout.
+- **`Navbar.jsx`**: The top navigation bar. It conditionally renders a minimal theme-switcher for guests, and a comprehensive status/profile bar for authenticated users.
+- **`Sidebar.jsx`**: The left-hand navigation menu for the dashboard, allowing users to switch between Live Monitoring, Layouts, Alerts, etc.
+- **`/dashboard`**: Contains the modular widgets used in the Overview Dashboard:
+  - `LiveCameraFeed.jsx`: A simulated CCTV video feed panel with a people-count overlay.
+  - `DensityHeatmap.jsx`: Visualizes zone capacities and crowd density using color-coded statuses.
+  - `RiskIndicator.jsx`: Displays a calculated system-wide risk score and label.
+  - `AlertsPanel.jsx`: A scrollable list of recent system notifications and warnings.
+  - `BuildingMap.jsx`: An SVG-based visualization highlighting rooms and active risk corridors.
 
-## React Compiler
+### `/src/pages`
+- **`Home.jsx`**: The landing page for unauthenticated users, displaying a responsive, two-card layout for Login and Sign Up.
+- **`LiveMonitoring.jsx`**: Placeholder page for full-screen camera feeds.
+- **`BuildingLayout.jsx`**: Placeholder page for the canvas-based room editor.
+- **`AlertsLogs.jsx`**: Placeholder page for historical alert tables.
+- **`Settings.jsx`**: Placeholder page for system thresholds and configurations.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### `/src/utils`
+- **`appStore.jsx`**: The main Redux store configuration.
+- **`themeSlice.jsx`**: Redux slice managing the application's light/dark mode state.
+- **`userSlice.jsx`**: Redux slice managing user authentication and session details.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### `/src`
+- **`App.jsx`**: The root component handling React Router setup and conditional rendering of the `DashboardLayout` vs the unauthenticated `Home` view.
+- **`main.jsx`**: The application entry point that provides the Redux store to the React tree.
