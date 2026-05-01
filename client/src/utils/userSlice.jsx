@@ -6,6 +6,12 @@ const initialState = {
   isAuthenticated: false,
 }
 
+// const initialState = {
+//   user: { name: 'Admin', role: 'Security' },
+//   token: 'demo-token',
+//   isAuthenticated: true,
+// }
+
 const userSlice = createSlice({
   name: 'user',
   initialState,
