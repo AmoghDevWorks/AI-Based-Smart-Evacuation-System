@@ -12,7 +12,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Smart Evacuation System API")
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 
 # Configure CORS
 app.add_middleware(

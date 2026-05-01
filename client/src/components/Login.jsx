@@ -10,23 +10,41 @@ const Login = () => {
   
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError(null)
 
-    // Simulate an API call delay for mock login
-    setTimeout(() => {
+    try {
+      const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Login failed')
+      }
+
       dispatch(setUser({
-        user: { name: 'Admin', role: 'Security' },
-        token: 'mock-jwt-token'
+        user: data.user,
+        token: data.token
       }))
       navigate('/')
-    }, 1000)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const baseInputClass = `w-full px-4 py-3 rounded-lg outline-none transition-all border ${
@@ -43,6 +61,12 @@ const Login = () => {
         <h2 className={`text-2xl font-bold mb-6 text-center ${mode === 'light' ? 'text-gray-900' : 'text-white'}`}>
           Welcome Back
         </h2>
+
+        {error && (
+          <div className="mb-5 p-3 rounded-lg border border-red-200 bg-red-50 text-red-600 text-sm text-center">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>

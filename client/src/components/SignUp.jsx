@@ -18,7 +18,8 @@ const SignUp = () => {
     setStatus({ loading: true, error: null, success: false })
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/signup', {
+      const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+      const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
