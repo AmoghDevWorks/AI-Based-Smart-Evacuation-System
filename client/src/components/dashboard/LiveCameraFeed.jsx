@@ -1,8 +1,39 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 
 const LiveCameraFeed = () => {
   const mode = useSelector((state) => state.theme.mode)
+  const user = useSelector((state) => state.user.user)
+
+  const [hasLayout, setHasLayout] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchLayout = async () => {
+      if (!user) {
+        setIsLoading(false)
+        return
+      }
+      setIsLoading(true)
+      try {
+        const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+        const res = await fetch(`${API_URL}/api/layouts/${user.id}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.nodes && data.nodes.length > 0) {
+            setHasLayout(true)
+          } else {
+            setHasLayout(false)
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch layout in dashboard", e)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchLayout()
+  }, [user])
 
   return (
     <div className={`border rounded-xl overflow-hidden flex flex-col relative h-full min-h-[300px] transition-colors duration-300 ${mode === 'light' ? 'bg-white border-gray-200 shadow-sm' : 'bg-gray-900 border-gray-800'}`}>
@@ -16,24 +47,37 @@ const LiveCameraFeed = () => {
         </span>
       </div>
       
-      {/* Video Placeholder */}
-      <div className={`flex-1 relative flex items-center justify-center ${mode === 'light' ? 'bg-gray-100' : 'bg-black'}`}>
-        {/* Simulate some "AI Vision" overlays */}
-        <div className={`absolute inset-0 border-[1px] m-8 ${mode === 'light' ? 'border-blue-500/40' : 'border-blue-500/20'}`}>
-          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-blue-500"></div>
-          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-blue-500"></div>
-          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-blue-500"></div>
-          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-blue-500"></div>
+      {isLoading ? (
+        <div className={`flex-1 relative flex items-center justify-center flex-col ${mode === 'light' ? 'bg-gray-100' : 'bg-black'}`}>
+          <div className="w-8 h-8 border-4 border-t-blue-500 border-b-blue-500 border-l-transparent border-r-transparent rounded-full animate-spin mb-2"></div>
         </div>
-        <div className={`font-mono text-sm ${mode === 'light' ? 'text-gray-500' : 'text-gray-700'}`}>[ NO VIDEO SIGNAL ]</div>
-      </div>
+      ) : !hasLayout ? (
+        <div className={`flex-1 relative flex items-center justify-center flex-col text-center p-4 ${mode === 'light' ? 'bg-gray-100' : 'bg-black'}`}>
+           <div className="text-3xl mb-2 opacity-50">📹</div>
+           <p className={`text-sm font-semibold ${mode === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>No active layout</p>
+        </div>
+      ) : (
+        <>
+          {/* Video Placeholder */}
+          <div className={`flex-1 relative flex items-center justify-center ${mode === 'light' ? 'bg-gray-100' : 'bg-black'}`}>
+            {/* Simulate some "AI Vision" overlays */}
+            <div className={`absolute inset-0 border-[1px] m-8 ${mode === 'light' ? 'border-blue-500/40' : 'border-blue-500/20'}`}>
+              <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-blue-500"></div>
+              <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-blue-500"></div>
+              <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-blue-500"></div>
+              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-blue-500"></div>
+            </div>
+            <div className={`font-mono text-sm ${mode === 'light' ? 'text-gray-500' : 'text-gray-700'}`}>[ NO VIDEO SIGNAL ]</div>
+          </div>
 
-      <div className="absolute bottom-4 right-4 z-10">
-        <div className={`border rounded-lg p-3 text-right ${mode === 'light' ? 'bg-white/90 backdrop-blur-md border-blue-300 shadow-md' : 'bg-black/70 backdrop-blur-md border-blue-500/50'}`}>
-          <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${mode === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>Detected People</div>
-          <div className={`text-3xl font-black ${mode === 'light' ? 'text-black' : 'text-white'}`}>142</div>
-        </div>
-      </div>
+          <div className="absolute bottom-4 right-4 z-10">
+            <div className={`border rounded-lg p-3 text-right ${mode === 'light' ? 'bg-white/90 backdrop-blur-md border-blue-300 shadow-md' : 'bg-black/70 backdrop-blur-md border-blue-500/50'}`}>
+              <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${mode === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>Detected People</div>
+              <div className={`text-3xl font-black ${mode === 'light' ? 'text-black' : 'text-white'}`}>142</div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

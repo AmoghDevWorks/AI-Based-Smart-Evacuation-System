@@ -126,19 +126,8 @@ function BuildingLayoutInner() {
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  const initialNodes = [
-    { id: '1', type: 'room', position: { x: 80, y: 180 }, data: { label: 'Lobby', type: 'room', area: 120, capacity: 50 } },
-    { id: '2', type: 'room', position: { x: 320, y: 80 }, data: { label: 'Corridor A', type: 'corridor', area: 40, capacity: 20 } },
-    { id: '3', type: 'room', position: { x: 320, y: 280 }, data: { label: 'Hall B', type: 'room', area: 200, capacity: 100 } },
-    { id: '4', type: 'room', position: { x: 560, y: 180 }, data: { label: 'Exit North', type: 'exit', area: 30, capacity: 15 } },
-  ]
-
-  const initialEdgesRaw = [
-    { id: 'e1-2', source: '1', target: '2', data: { weight: 5 } },
-    { id: 'e1-3', source: '1', target: '3', data: { weight: 10 } },
-    { id: 'e2-4', source: '2', target: '4', data: { weight: 3 } },
-    { id: 'e3-4', source: '3', target: '4', data: { weight: 8 } },
-  ]
+  const initialNodes = []
+  const initialEdgesRaw = []
 
   const buildEdge = (raw) => ({
     ...raw,
@@ -404,6 +393,18 @@ function BuildingLayoutInner() {
             borderRadius: 999, fontSize: 12, fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
           }}>
             {addMode === 'node' ? '📍 Click anywhere on the canvas to place a room' : edgeSource ? `→ Now click the target room` : '→ Click the source room to start a path'}
+          </div>
+        )}
+
+        {!isLoading && nodes.length === 0 && !addMode && (
+          <div style={{
+            position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+            zIndex: 5, color: textSecondary, textAlign: 'center', pointerEvents: 'none'
+          }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🗺️</div>
+            <h3 style={{ fontSize: 18, fontWeight: 600, color: textPrimary, marginBottom: 8 }}>No Layout Found</h3>
+            <p style={{ fontSize: 14 }}>You haven't created a building layout yet.</p>
+            <p style={{ fontSize: 14, marginTop: 4 }}>Click <b>+ Add Room</b> in the sidebar to get started!</p>
           </div>
         )}
 
