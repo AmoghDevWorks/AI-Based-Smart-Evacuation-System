@@ -52,3 +52,4 @@ ultralytics==8.4.45
 ultralytics-thop==2.0.19
 urllib3==2.6.3
 uvicorn==0.46.0
+gunicorn==22.0.0
