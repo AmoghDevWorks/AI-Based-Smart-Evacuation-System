@@ -25,6 +25,7 @@ pip install -r requirements.txt
 Launch the camera broadcast script:
 ```bash
 python camera_streamer.py --port 5000
+python video_streamer.py --video test.mp4 --port 5000
 ```
 *(Note: If you have multiple webcams connected to the laptop, you can specify which one to use with `--camera 1`)*
 

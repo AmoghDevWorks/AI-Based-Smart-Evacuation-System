@@ -9,6 +9,11 @@ const LiveCameraFeed = ({ analysis }) => {
   const [isLoading, setIsLoading] = useState(true)
   const primaryCamera = analysis?.cameras?.[0]
   const primaryMetrics = primaryCamera?.metrics
+  const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+  const isRemoteUrl = primaryCamera?.device_id?.startsWith('http://') || primaryCamera?.device_id?.startsWith('https://')
+  const streamUrl = primaryCamera?.device_id
+    ? isRemoteUrl ? primaryCamera.device_id : `${API_URL}/api/camera/stream/${user?.id}/${primaryCamera.device_id}`
+    : ''
 
   useEffect(() => {
     const fetchLayout = async () => {
@@ -62,6 +67,7 @@ const LiveCameraFeed = ({ analysis }) => {
         <>
           {/* Video Placeholder */}
           <div className={`flex-1 relative flex items-center justify-center ${mode === 'light' ? 'bg-gray-100' : 'bg-black'}`}>
+            {streamUrl && <img src={streamUrl} alt={`Live stream for ${primaryCamera?.label || 'camera'}`} className="absolute inset-0 h-full w-full object-cover" />}
             {/* Simulate some "AI Vision" overlays */}
             <div className={`absolute inset-0 border-[1px] m-8 ${mode === 'light' ? 'border-blue-500/40' : 'border-blue-500/20'}`}>
               <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-blue-500"></div>
@@ -69,7 +75,7 @@ const LiveCameraFeed = ({ analysis }) => {
               <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-blue-500"></div>
               <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-blue-500"></div>
             </div>
-            <div className={`font-mono text-sm ${mode === 'light' ? 'text-gray-500' : 'text-gray-700'}`}>
+            <div className={`z-10 font-mono text-sm ${streamUrl ? 'bg-black/60 px-2 py-1 text-gray-200' : mode === 'light' ? 'text-gray-500' : 'text-gray-700'}`}>
               {primaryCamera?.error ? '[ ANALYSIS ERROR ]' : '[ NO VIDEO SIGNAL ]'}
             </div>
           </div>

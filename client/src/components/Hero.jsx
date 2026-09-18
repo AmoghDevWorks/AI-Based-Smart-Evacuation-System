@@ -52,7 +52,7 @@ const Hero = () => {
 
         {/* Bottom Row: Map (3 cols), Alerts (1 col) */}
         <div className="lg:col-span-3 min-h-[350px] lg:h-[400px]">
-          <BuildingMap />
+          <BuildingMap analysis={analysis} />
         </div>
         <div className="lg:col-span-1 min-h-[350px] lg:h-[400px]">
           <AlertsPanel analysis={analysis} />

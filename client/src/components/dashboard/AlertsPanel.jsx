@@ -40,12 +40,22 @@ const AlertsPanel = ({ analysis }) => {
     if (camera.connected === false || camera.error) {
       return [{ id: `${camera.node_id}-offline`, time: 'Now', msg: `${camera.label} camera is offline`, level: 'critical' }]
     }
-    if (!metrics || metrics.risk_level === 'CLEAR') return []
+    if (!metrics) return []
+    if (metrics.over_capacity) {
+      return [{
+        id: `${camera.node_id}-capacity`,
+        time: 'Now',
+        msg: `${camera.label} exceeds capacity: ${metrics.people} people / ${metrics.capacity} allowed`,
+        level: 'critical',
+      }]
+    }
+    const riskLevel = metrics.risk_level || metrics.status || 'CLEAR'
+    if (riskLevel === 'CLEAR') return []
     return [{
-      id: `${camera.node_id}-${metrics.risk_level}`,
+      id: `${camera.node_id}-${riskLevel}`,
       time: 'Now',
-      msg: `${metrics.risk_level} detected at ${camera.label}`,
-      level: metrics.risk_level === 'CONGESTION' ? 'critical' : 'warning',
+      msg: `${riskLevel} detected at ${camera.label}`,
+      level: riskLevel === 'CONGESTION' ? 'critical' : 'warning',
     }]
   })
 

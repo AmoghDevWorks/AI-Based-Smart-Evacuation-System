@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 
-const BuildingMap = () => {
+const BuildingMap = ({ analysis }) => {
   const mode = useSelector((state) => state.theme.mode)
   const user = useSelector((state) => state.user.user)
 
@@ -60,28 +60,35 @@ const BuildingMap = () => {
              <p className={`text-sm mt-2 max-w-xs ${mode === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>You need to map out your building before you can monitor live evacuation flows.</p>
           </div>
         ) : (
-          <svg viewBox="0 0 400 200" className="w-full h-full drop-shadow-lg">
-            <defs>
-              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                <path d="M 20 0 L 0 0 0 20" fill="none" stroke={mode === 'light' ? '#e5e7eb' : '#1f2937'} strokeWidth="1" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-            
-            {/* Room A */}
-            <rect x="50" y="50" width="100" height="80" rx="4" fill={mode === 'light' ? '#eff6ff' : '#0f172a'} stroke="#3b82f6" strokeWidth="2" />
-            <text x="100" y="95" fill="#3b82f6" fontSize="14" fontWeight="bold" textAnchor="middle">LOBBY</text>
-            
-            {/* Corridor */}
-            <rect x="150" y="70" width="80" height="40" fill={mode === 'light' ? '#fef2f2' : '#0f172a'} stroke="#ef4444" strokeWidth="2" className="animate-pulse" />
-            
-            {/* Room B */}
-            <rect x="230" y="30" width="120" height="120" rx="4" fill={mode === 'light' ? '#fee2e2' : '#450a0a'} stroke="#ef4444" strokeWidth="2" />
-            <text x="290" y="95" fill="#ef4444" fontSize="14" fontWeight="bold" textAnchor="middle">HALLWAY A</text>
-
-            {/* Connection Lines */}
-            <path d="M 150 90 L 230 90" stroke="#ef4444" strokeWidth="4" strokeDasharray="4 4" className="animate-pulse" />
-          </svg>
+          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+            {(analysis?.cameras || []).map((camera) => {
+              const metrics = camera.metrics || {}
+              const congested = metrics.over_capacity || metrics.risk_level === 'CONGESTION'
+              const warning = !congested && (metrics.risk_level === 'WARNING' || metrics.status === 'WARNING')
+              const color = congested ? 'border-red-400 bg-red-50 text-red-700' : warning ? 'border-yellow-400 bg-yellow-50 text-yellow-700' : 'border-green-400 bg-green-50 text-green-700'
+              return (
+                <div key={camera.node_id} className={`rounded-lg border-2 p-4 ${color}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-bold">{camera.label || camera.node_id}</span>
+                    <span className="text-xs font-bold uppercase">{congested ? 'Risk' : warning ? 'Warning' : 'Safe'}</span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    <span>People <strong>{metrics.people ?? '--'}</strong></span>
+                    <span>Capacity <strong>{metrics.capacity ?? '--'}</strong></span>
+                    <span className="col-span-2">Occupancy <strong>{metrics.occupancy_percent == null ? '--' : `${metrics.occupancy_percent}%`}</strong></span>
+                  </div>
+                </div>
+              )
+            })}
+            {analysis?.evacuation_plan?.length > 0 && (
+              <div className={`rounded-lg border p-4 sm:col-span-2 ${mode === 'light' ? 'border-gray-200 bg-white' : 'border-gray-700 bg-gray-900'}`}>
+                <div className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">Evacuation routes</div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {analysis.evacuation_plan.map(plan => <div key={plan.from} className="text-xs"><strong>{plan.from_label}</strong>: {plan.status === 'NO_ROUTE' ? <span className="text-red-500">No route</span> : <span className="text-green-500">{plan.destination_label}</span>}</div>)}
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

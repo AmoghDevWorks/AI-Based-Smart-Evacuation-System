@@ -149,12 +149,29 @@ class EvacuationAnalysisService:
                 snapshot = worker.snapshot()
                 metrics = snapshot["metrics"]
                 if metrics is not None:
+                    capacity = data.get("capacity")
+                    try:
+                        capacity = max(float(capacity), 0)
+                    except (TypeError, ValueError):
+                        capacity = 0
+                    people = metrics.get("people", 0)
+                    occupancy_percent = round(people / capacity * 100, 1) if capacity else None
+                    over_capacity = bool(capacity and people > capacity)
+                    metrics = {
+                        **metrics,
+                        "capacity": int(capacity) if capacity.is_integer() else capacity,
+                        "occupancy_percent": occupancy_percent,
+                        "over_capacity": over_capacity,
+                        "risk_level": "CONGESTION" if over_capacity else metrics.get("risk_level", metrics.get("status", "CLEAR")),
+                    }
                     metrics_by_node[node_id] = metrics
                 cameras.append({
                     "node_id": node_id,
                     "label": data.get("label", node_id),
                     "device_id": device_id,
+                    "capacity": data.get("capacity"),
                     **snapshot,
+                    "metrics": metrics,
                 })
 
             removed_ids = set(self._workers) - active_camera_ids

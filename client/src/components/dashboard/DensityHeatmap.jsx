@@ -36,11 +36,16 @@ const DensityHeatmap = ({ analysis }) => {
   }, [user])
 
   const zones = (analysis?.cameras || []).map((camera) => {
-    const risk = camera.metrics?.risk_level || camera.metrics?.status || 'CLEAR'
+    const metrics = camera.metrics || {}
+    const risk = metrics.over_capacity
+      ? 'CONGESTION'
+      : metrics.risk_level || metrics.status || 'CLEAR'
     return {
       id: camera.node_id,
       name: camera.label || camera.node_id,
-      density: camera.metrics?.density ?? 0,
+      people: metrics.people ?? 0,
+      capacity: metrics.capacity ?? '--',
+      occupancy: metrics.occupancy_percent,
       status: risk === 'CONGESTION' ? 'red' : risk === 'WARNING' ? 'yellow' : 'green',
     }
   })
@@ -68,7 +73,7 @@ const DensityHeatmap = ({ analysis }) => {
            <p className={`text-sm font-semibold ${mode === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>No active layout</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
+        <div className="grid content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
           {zones.length === 0 ? (
             <p className="col-span-full self-center text-center text-sm text-gray-500">Waiting for camera analysis...</p>
           ) : zones.map((zone) => (
@@ -78,8 +83,10 @@ const DensityHeatmap = ({ analysis }) => {
                 <span className="text-xs font-bold uppercase bg-black/20 px-2 py-1 rounded">{zone.name}</span>
               </div>
               <div className="mt-4">
-                <div className="text-2xl font-black">{zone.density}</div>
-                <div className="text-xs uppercase tracking-wider opacity-80 mt-1 text-right w-full">Density</div>
+                <div className="text-2xl font-black">{zone.people} / {zone.capacity}</div>
+                <div className="text-xs uppercase tracking-wider opacity-80 mt-1 text-right w-full">
+                  {zone.occupancy == null ? 'People / Capacity' : `${zone.occupancy}% occupied`}
+                </div>
               </div>
             </div>
           ))}
