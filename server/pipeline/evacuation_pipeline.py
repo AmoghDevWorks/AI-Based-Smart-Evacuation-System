@@ -70,8 +70,15 @@ def build_evacuation_plan(
         for node_id, node in node_by_id.items()
         if _node_type(node) in DESTINATION_TYPES
     }
+    sources = [node_id for node_id in node_by_id if node_id not in destinations]
     if not destinations:
-        return []
+        return [{
+            "from": source,
+            "from_label": _node_label(node_by_id[source]),
+            "status": "NO_DESTINATION",
+            "route": [],
+            "reason": "Add an exit or entry node to the building layout.",
+        } for source in sources]
 
     graph: dict[str, list[tuple[str, float]]] = {node_id: [] for node_id in node_by_id}
     for edge in edges:
@@ -84,9 +91,7 @@ def build_evacuation_plan(
         graph[target].append((source, weight))
 
     plans = []
-    for source in node_by_id:
-        if source in destinations:
-            continue
+    for source in sources:
         distances = {source: 0.0}
         previous: dict[str, str | None] = {source: None}
         queue = [(0.0, source)]
@@ -109,6 +114,7 @@ def build_evacuation_plan(
                 "from_label": _node_label(node_by_id[source]),
                 "status": "NO_ROUTE",
                 "route": [],
+                "reason": "No connected exit or entry is reachable from this room.",
             })
             continue
 
@@ -119,6 +125,9 @@ def build_evacuation_plan(
             route.append(current)
             current = previous.get(current)
         route.reverse()
+        route_labels = [_node_label(node_by_id[node_id]) for node_id in route]
+        source_metrics = metrics_by_node.get(source, {})
+        source_risk = source_metrics.get("risk_level", "CLEAR")
         plans.append({
             "from": source,
             "from_label": _node_label(node_by_id[source]),
@@ -127,5 +136,8 @@ def build_evacuation_plan(
             "status": "ROUTE_AVAILABLE",
             "cost": round(distances[destination], 2),
             "route": route,
+            "route_labels": route_labels,
+            "source_risk": source_risk,
+            "reason": "Avoids higher-risk paths when a safer route is available.",
         })
     return plans

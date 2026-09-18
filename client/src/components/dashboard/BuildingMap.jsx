@@ -84,7 +84,7 @@ const BuildingMap = ({ analysis }) => {
               <div className={`rounded-lg border p-4 sm:col-span-2 ${mode === 'light' ? 'border-gray-200 bg-white' : 'border-gray-700 bg-gray-900'}`}>
                 <div className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">Evacuation routes</div>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {analysis.evacuation_plan.map(plan => <div key={plan.from} className="text-xs"><strong>{plan.from_label}</strong>: {plan.status === 'NO_ROUTE' ? <span className="text-red-500">No route</span> : <span className="text-green-500">{plan.destination_label}</span>}</div>)}
+                  {analysis.evacuation_plan.map(plan => <div key={plan.from} className="text-xs"><strong>{plan.from_label}</strong>: {plan.status !== 'ROUTE_AVAILABLE' ? <span className="text-red-500">{plan.reason || 'No route'}</span> : <span className="text-green-500">{plan.route_labels?.join(' → ') || plan.destination_label}</span>}</div>)}
                 </div>
               </div>
             )}
