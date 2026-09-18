@@ -60,8 +60,8 @@ const DensityHeatmap = ({ analysis }) => {
   }
 
   return (
-    <div className={`border rounded-xl p-6 flex flex-col h-full transition-colors duration-300 ${mode === 'light' ? 'bg-white border-gray-200 shadow-sm text-black' : 'bg-gray-900 border-gray-800 text-white'}`}>
-      <h3 className={`text-sm font-bold uppercase tracking-widest mb-4 border-b pb-2 ${mode === 'light' ? 'text-gray-500 border-gray-200' : 'text-gray-400 border-gray-800'}`}>Density Heatmap</h3>
+    <div className={`min-w-0 overflow-hidden rounded-xl border p-4 sm:p-5 lg:p-6 flex flex-col h-full transition-colors duration-300 ${mode === 'light' ? 'bg-white border-gray-200 shadow-sm text-black' : 'bg-gray-900 border-gray-800 text-white'}`}>
+      <h3 className={`mb-3 border-b pb-2 text-xs sm:text-sm font-bold uppercase tracking-widest ${mode === 'light' ? 'text-gray-500 border-gray-200' : 'text-gray-400 border-gray-800'}`}>Density Heatmap</h3>
       
       {isLoading ? (
         <div className="flex-1 flex flex-col items-center justify-center">
@@ -73,18 +73,18 @@ const DensityHeatmap = ({ analysis }) => {
            <p className={`text-sm font-semibold ${mode === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>No active layout</p>
         </div>
       ) : (
-        <div className="grid content-start grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
+        <div className="flex min-w-0 flex-1 flex-wrap content-start items-start gap-3 sm:gap-4">
           {zones.length === 0 ? (
             <p className="col-span-full self-center text-center text-sm text-gray-500">Waiting for camera analysis...</p>
           ) : zones.map((zone) => (
-            <div key={zone.id} className={`${getStatusColor(zone.status)} rounded-lg p-4 flex flex-col justify-between transition-transform hover:scale-[1.02]`}>
-              <div className="flex justify-between items-start">
-                <span className="font-bold opacity-80">{zone.id}</span>
-                <span className="text-xs font-bold uppercase bg-black/20 px-2 py-1 rounded">{zone.name}</span>
+            <div key={zone.id} className={`${getStatusColor(zone.status)} min-w-0 w-full rounded-lg p-3 sm:w-fit sm:max-w-full sm:p-4 flex flex-col justify-between transition-transform hover:scale-[1.02]`}>
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <span className="shrink-0 font-bold opacity-80">{zone.id}</span>
+                <span title={zone.name} className="min-w-0 truncate rounded bg-black/20 px-2 py-1 text-right text-[10px] font-bold uppercase sm:text-xs">{zone.name}</span>
               </div>
-              <div className="mt-4">
-                <div className="text-2xl font-black">{zone.people} / {zone.capacity}</div>
-                <div className="text-xs uppercase tracking-wider opacity-80 mt-1 text-right w-full">
+              <div className="mt-3 sm:mt-4">
+                <div className="whitespace-nowrap text-xl font-black sm:text-2xl">{zone.people} / {zone.capacity}</div>
+                <div className="mt-1 w-full text-right text-[10px] uppercase tracking-wider opacity-80 sm:text-xs">
                   {zone.occupancy == null ? 'People / Capacity' : `${zone.occupancy}% occupied`}
                 </div>
               </div>
