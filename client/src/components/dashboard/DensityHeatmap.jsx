@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 
-const DensityHeatmap = () => {
+const DensityHeatmap = ({ analysis }) => {
   const mode = useSelector((state) => state.theme.mode)
   const user = useSelector((state) => state.user.user)
 
@@ -35,14 +35,15 @@ const DensityHeatmap = () => {
     fetchLayout()
   }, [user])
 
-  const zones = [
-    { id: 'Z1', name: 'Lobby', density: 85, status: 'red' },
-    { id: 'Z2', name: 'Cafeteria', density: 45, status: 'yellow' },
-    { id: 'Z3', name: 'Hallway A', density: 12, status: 'green' },
-    { id: 'Z4', name: 'Hallway B', density: 90, status: 'red' },
-    { id: 'Z5', name: 'Exit North', density: 60, status: 'yellow' },
-    { id: 'Z6', name: 'Exit South', density: 5, status: 'green' },
-  ]
+  const zones = (analysis?.cameras || []).map((camera) => {
+    const risk = camera.metrics?.risk_level || camera.metrics?.status || 'CLEAR'
+    return {
+      id: camera.node_id,
+      name: camera.label || camera.node_id,
+      density: camera.metrics?.density ?? 0,
+      status: risk === 'CONGESTION' ? 'red' : risk === 'WARNING' ? 'yellow' : 'green',
+    }
+  })
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -68,15 +69,17 @@ const DensityHeatmap = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
-          {zones.map((zone) => (
+          {zones.length === 0 ? (
+            <p className="col-span-full self-center text-center text-sm text-gray-500">Waiting for camera analysis...</p>
+          ) : zones.map((zone) => (
             <div key={zone.id} className={`${getStatusColor(zone.status)} rounded-lg p-4 flex flex-col justify-between transition-transform hover:scale-[1.02]`}>
               <div className="flex justify-between items-start">
                 <span className="font-bold opacity-80">{zone.id}</span>
                 <span className="text-xs font-bold uppercase bg-black/20 px-2 py-1 rounded">{zone.name}</span>
               </div>
               <div className="mt-4">
-                <div className="text-2xl font-black">{zone.density}%</div>
-                <div className="text-xs uppercase tracking-wider opacity-80 mt-1 text-right w-full">Capacity</div>
+                <div className="text-2xl font-black">{zone.density}</div>
+                <div className="text-xs uppercase tracking-wider opacity-80 mt-1 text-right w-full">Density</div>
               </div>
             </div>
           ))}

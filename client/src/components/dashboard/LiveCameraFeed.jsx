@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 
-const LiveCameraFeed = () => {
+const LiveCameraFeed = ({ analysis }) => {
   const mode = useSelector((state) => state.theme.mode)
   const user = useSelector((state) => state.user.user)
 
   const [hasLayout, setHasLayout] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const primaryCamera = analysis?.cameras?.[0]
+  const primaryMetrics = primaryCamera?.metrics
 
   useEffect(() => {
     const fetchLayout = async () => {
@@ -67,13 +69,15 @@ const LiveCameraFeed = () => {
               <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-blue-500"></div>
               <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-blue-500"></div>
             </div>
-            <div className={`font-mono text-sm ${mode === 'light' ? 'text-gray-500' : 'text-gray-700'}`}>[ NO VIDEO SIGNAL ]</div>
+            <div className={`font-mono text-sm ${mode === 'light' ? 'text-gray-500' : 'text-gray-700'}`}>
+              {primaryCamera?.error ? '[ ANALYSIS ERROR ]' : '[ NO VIDEO SIGNAL ]'}
+            </div>
           </div>
 
           <div className="absolute bottom-4 right-4 z-10">
             <div className={`border rounded-lg p-3 text-right ${mode === 'light' ? 'bg-white/90 backdrop-blur-md border-blue-300 shadow-md' : 'bg-black/70 backdrop-blur-md border-blue-500/50'}`}>
               <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${mode === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>Detected People</div>
-              <div className={`text-3xl font-black ${mode === 'light' ? 'text-black' : 'text-white'}`}>142</div>
+              <div className={`text-3xl font-black ${mode === 'light' ? 'text-black' : 'text-white'}`}>{primaryMetrics?.people ?? '--'}</div>
             </div>
           </div>
         </>

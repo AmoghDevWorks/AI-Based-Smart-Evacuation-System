@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 
-const AlertsPanel = () => {
+const AlertsPanel = ({ analysis }) => {
   const mode = useSelector((state) => state.theme.mode)
   const user = useSelector((state) => state.user.user)
 
@@ -35,13 +35,19 @@ const AlertsPanel = () => {
     fetchLayout()
   }, [user])
   
-  const alerts = [
-    { id: 1, time: '10:42:05', msg: 'High density in Corridor A', level: 'warning' },
-    { id: 2, time: '10:40:12', msg: 'Bottleneck detected at Exit South', level: 'critical' },
-    { id: 3, time: '10:35:00', msg: 'Camera 04 lost connection', level: 'info' },
-    { id: 4, time: '10:15:33', msg: 'Density threshold exceeded (Zone 2)', level: 'warning' },
-    { id: 5, time: '09:50:11', msg: 'System started successfully', level: 'info' },
-  ]
+  const alerts = (analysis?.cameras || []).flatMap((camera) => {
+    const metrics = camera.metrics
+    if (camera.connected === false || camera.error) {
+      return [{ id: `${camera.node_id}-offline`, time: 'Now', msg: `${camera.label} camera is offline`, level: 'critical' }]
+    }
+    if (!metrics || metrics.risk_level === 'CLEAR') return []
+    return [{
+      id: `${camera.node_id}-${metrics.risk_level}`,
+      time: 'Now',
+      msg: `${metrics.risk_level} detected at ${camera.label}`,
+      level: metrics.risk_level === 'CONGESTION' ? 'critical' : 'warning',
+    }]
+  })
 
   const getBadge = (level) => {
     switch (level) {
@@ -71,7 +77,9 @@ const AlertsPanel = () => {
           </div>
         ) : (
           <div className="flex flex-col gap-1">
-            {alerts.map(alert => (
+            {alerts.length === 0 ? (
+              <p className="p-4 text-center text-sm text-gray-500">No active alerts</p>
+            ) : alerts.map(alert => (
               <div key={alert.id} className={`p-3 rounded-lg transition-colors border flex flex-col gap-2 ${mode === 'light' ? 'hover:bg-gray-50 border-transparent hover:border-gray-200' : 'hover:bg-gray-800 border-transparent hover:border-gray-700'}`}>
                 <div className="flex justify-between items-center">
                   {getBadge(alert.level)}

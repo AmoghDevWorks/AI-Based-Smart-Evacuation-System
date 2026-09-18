@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 
-const RiskIndicator = () => {
+const RiskIndicator = ({ analysis }) => {
   const mode = useSelector((state) => state.theme.mode)
   const user = useSelector((state) => state.user.user)
 
   const [hasLayout, setHasLayout] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const riskRank = { CLEAR: 0, WARNING: 1, CONGESTION: 2 }
+  const riskCamera = (analysis?.cameras || []).reduce((current, camera) => {
+    const currentRisk = current?.metrics?.risk_level || current?.metrics?.status || 'CLEAR'
+    const nextRisk = camera.metrics?.risk_level || camera.metrics?.status || 'CLEAR'
+    return riskRank[nextRisk] > riskRank[currentRisk] ? camera : current
+  }, analysis?.cameras?.[0])
+  const riskLevel = riskCamera?.metrics?.risk_level || riskCamera?.metrics?.status || 'CLEAR'
+  const riskScore = riskLevel === 'CONGESTION' ? '1.00' : riskLevel === 'WARNING' ? '0.60' : '0.10'
 
   useEffect(() => {
     const fetchLayout = async () => {
@@ -55,14 +63,14 @@ const RiskIndicator = () => {
           
           <div className="z-10 relative my-4">
             <div className={`text-6xl font-black tracking-tighter ${mode === 'light' ? 'text-red-600' : 'text-red-500'}`}>
-              0.84
+              {riskScore}
             </div>
             <div className="text-xs text-gray-500 mt-1 uppercase tracking-widest">Score (0.0 - 1.0)</div>
           </div>
           
           <div className="z-10 relative w-full">
             <div className={`inline-block border font-bold uppercase tracking-widest px-6 py-2 rounded-full ${mode === 'light' ? 'bg-red-100 text-red-600 border-red-300 shadow-sm' : 'bg-red-900/40 text-red-400 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]'}`}>
-              High Risk
+              {riskLevel}
             </div>
           </div>
         </>

@@ -7,6 +7,8 @@ const LiveMonitoring = () => {
   
   const [cameras, setCameras] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [analysis, setAnalysis] = useState({ cameras: [], evacuation_plan: [] })
+  const [analysisError, setAnalysisError] = useState('')
 
   useEffect(() => {
     const fetchCameras = async () => {
@@ -39,6 +41,26 @@ const LiveMonitoring = () => {
       }
     }
     fetchCameras()
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return undefined
+
+    const fetchAnalysis = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+        const res = await fetch(`${API_URL}/api/analysis/${user.id}`)
+        if (!res.ok) throw new Error(`Analysis request failed (${res.status})`)
+        setAnalysis(await res.json())
+        setAnalysisError('')
+      } catch (error) {
+        setAnalysisError(error.message)
+      }
+    }
+
+    fetchAnalysis()
+    const intervalId = window.setInterval(fetchAnalysis, 15000)
+    return () => window.clearInterval(intervalId)
   }, [user])
 
   return (
@@ -84,6 +106,8 @@ const LiveMonitoring = () => {
               const streamUrl = isRemoteUrl
                 ? cam.deviceId  // Direct connection to the edge device's Flask server
                 : `${API_URL}/api/camera/stream/${user.id}/${cam.deviceId}` // Proxy local webcam through FastAPI
+              const cameraAnalysis = analysis.cameras.find(item => item.node_id === cam.id)
+              const metrics = cameraAnalysis?.metrics
 
               return (
                 <div key={idx} className={`rounded-xl overflow-hidden shadow-lg border flex flex-col aspect-video relative group transition-transform duration-300 hover:shadow-2xl ${mode === 'light' ? 'bg-black border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
@@ -113,6 +137,20 @@ const LiveMonitoring = () => {
                     <span className="bg-red-600/90 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-widest animate-pulse border border-red-500">Rec</span>
                   </div>
 
+                  <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2 pointer-events-none">
+                    <div className="rounded-lg bg-black/75 px-3 py-2 text-white text-xs backdrop-blur-sm">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono">
+                        <span>People <strong>{metrics?.people ?? '--'}</strong></span>
+                        <span>Density <strong>{metrics?.density ?? '--'}</strong></span>
+                        <span>Flow <strong>{metrics?.avg_speed ?? '--'}</strong></span>
+                        <span>Counter <strong>{metrics?.counter_flow ?? '--'}</strong></span>
+                      </div>
+                    </div>
+                    <span className={`rounded-md px-2 py-1 text-xs font-bold uppercase ${metrics?.risk_level === 'CONGESTION' ? 'bg-red-600 text-white' : metrics?.risk_level === 'WARNING' ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'}`}>
+                      {metrics?.risk_level || (cameraAnalysis?.connected === false ? 'Offline' : 'Analyzing')}
+                    </span>
+                  </div>
+
                   {/* AI Vision simulated overlay corners */}
                   <div className="absolute inset-0 border border-transparent group-hover:border-blue-500/50 transition-colors pointer-events-none m-4">
                     <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white/60"></div>
@@ -127,6 +165,27 @@ const LiveMonitoring = () => {
           </div>
         )}
       </div>
+      {analysisError && <p className="mt-3 text-xs text-red-500">{analysisError}</p>}
+      {analysis.evacuation_plan?.length > 0 && (
+        <div className={`mt-5 border-t pt-4 ${mode === 'light' ? 'border-gray-200' : 'border-gray-800'}`}>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold uppercase tracking-widest">Evacuation Routes</h2>
+            <span className="text-xs text-gray-500">Risk-weighted live recommendations</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+            {analysis.evacuation_plan.map(plan => (
+              <div key={plan.from} className={`rounded-lg border px-3 py-2 text-xs ${plan.status === 'NO_ROUTE' ? 'border-red-400/50' : mode === 'light' ? 'border-gray-200' : 'border-gray-800'}`}>
+                <div className="font-semibold">{plan.from_label}</div>
+                {plan.status === 'NO_ROUTE' ? (
+                  <div className="text-red-500 mt-1">No available exit or entry route</div>
+                ) : (
+                  <div className="text-green-500 mt-1">→ {plan.destination_label} · cost {plan.cost}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

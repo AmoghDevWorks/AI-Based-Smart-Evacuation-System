@@ -23,6 +23,7 @@ const TYPE_COLORS = {
   room: { bg: '#3b82f6', border: '#1d4ed8', text: '#fff', label: 'Room' },
   corridor: { bg: '#6b7280', border: '#374151', text: '#fff', label: 'Corridor' },
   exit: { bg: '#22c55e', border: '#15803d', text: '#fff', label: 'Exit' },
+  entry: { bg: '#06b6d4', border: '#0e7490', text: '#fff', label: 'Entry' },
 }
 
 // ─── Custom Room Node ──────────────────────────────────────────────
@@ -459,6 +460,7 @@ function BuildingLayoutInner() {
                   <option value="room">Room</option>
                   <option value="corridor">Corridor</option>
                   <option value="exit">Exit</option>
+                  <option value="entry">Entry</option>
                 </select>
               </div>
               <div>
